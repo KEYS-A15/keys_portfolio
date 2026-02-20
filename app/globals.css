@@ -1,26 +1,277 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
+/* Keep shadcn token wiring (Tailwind v4 style) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─────────────────────────────────────────
+   Terminal Theme (single source of truth)
+───────────────────────────────────────── */
+:root {
+  --radius: 0.625rem;
+
+  /* Terminal palette (rgb(var(--x))) */
+  --bg: 12 16 10;
+  --fg: 230 232 235;
+  --muted: 160 165 170;
+  --accent: 120 180 90;
+
+  /* Map into shadcn tokens so @apply bg-background works */
+  --background: rgb(var(--bg));
+  --foreground: rgb(var(--fg));
+  --card: rgb(var(--bg));
+  --card-foreground: rgb(var(--fg));
+  --muted-foreground: rgb(var(--muted));
+  --border: rgb(var(--accent) / 0.14);
+  --ring: rgb(var(--accent) / 0.28);
+  --muted: rgb(var(--bg));
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.22);
+  color: rgb(var(--fg));
+}
+
+/* Tailwind base layer compatibility */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Typewriter: BIG + clean
+   Your Typewriter renders lines as:
+   .terminal-line-0, .terminal-line-1, ...
+───────────────────────────────────────── */
+@keyframes cursorBlink {
+  0%,
+  49% {
+    opacity: 0.9;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-block {
+  display: inline-block;
+  width: 0.85ch;
+  height: 1em;
+  margin-left: 0.35ch;
+  background: rgb(var(--fg));
+  vertical-align: -0.15em;
+  animation: cursorBlink 1.05s step-end infinite;
+  box-shadow: 0 0 12px rgb(var(--fg) / 0.18);
+}
+
+/* Make the boot line big and readable */
+.terminal-line-0 {
+  font-size: clamp(1.6rem, 2.4vw, 2.35rem);
+  line-height: 1.35;
+}
+.terminal-line-1,
+.terminal-line-2,
+.terminal-line-3 {
+  font-size: 1.05rem;
+  opacity: 0.92;
+  line-height: 1.5;
+}
+
+/* ─────────────────────────────────────────
+   HUD2 Boxes (matches hud-boxes-hud.tsx)
+───────────────────────────────────────── */
+
+.hud2-wrap {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .hud2-wrap {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+}
+
+.hud2-box {
+  position: relative;
+  border-radius: 18px;
+  min-height: 150px;
+  padding: 16px 18px 14px;
+  overflow: hidden;
+}
+
+/* Slight offset / personality */
+.hud2-left {
+  transform: translateX(-1px);
+}
+.hud2-right {
+  transform: translateX(1px);
+}
+
+/* Hologram background fill */
+.hud2-fill {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      120% 170% at 0% 0%,
+      rgb(var(--accent) / 0.12) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(var(--accent) / 0.06),
+      transparent 60%
+    );
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+
+.hud2-fill.on {
+  opacity: 1;
+}
+
+/* SVG layer */
+.hud2-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Stroke styling */
+.hud2-stroke {
+  stroke: rgb(var(--accent) / 0.85);
+  stroke-width: 2.25;
+  stroke-linecap: square;
+  fill: none;
+  filter: drop-shadow(0 0 10px rgb(var(--accent) / 0.18));
+}
+
+/* Tiny center dots in plus marks */
+.hud2-dot {
+  fill: rgb(var(--accent) / 0.9);
+  filter: drop-shadow(0 0 8px rgb(var(--accent) / 0.35));
+}
+
+/* Draw animation */
+.hud2-draw {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  transition: stroke-dashoffset 620ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stagger classes used in your component: d0, d1, d2 */
+.hud2-lines.on .hud2-draw {
+  stroke-dashoffset: 0;
+}
+.hud2-plus {
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.hud2-plus.on {
+  opacity: 1;
+}
+
+/* Extra stagger via transition-delay */
+.hud2-draw.d0 {
+  transition-delay: 0ms;
+}
+.hud2-draw.d1 {
+  transition-delay: 80ms;
+}
+.hud2-draw.d2 {
+  transition-delay: 150ms;
+}
+
+/* Content layer */
+.hud2-content {
+  position: relative;
+  z-index: 20;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.hud2-content.on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Label + body */
+.hud2-label {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+  user-select: none;
+  margin-bottom: 8px;
+}
+
+.hud2-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgb(var(--fg));
+}
+
+/* Footer strip */
+.hud2-strip {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+  user-select: none;
+}
+
+/* Accent helpers used in your highlights */
+.hud2-accent {
+  color: rgb(var(--accent));
+}
+
+.hud2-muted {
+  color: rgb(var(--muted));
 }

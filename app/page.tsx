@@ -31,8 +31,22 @@ export default function Home() {
 
           {bootDone && (
             <HudBoxesHUD
-              leftText="Master of Science @ Arizona State University"
-              rightText="AI/ML Engineer @ Codetrade"
+              left={{
+                label: "Current Position",
+                mainText: "Masters of Science in Computer Science @ Arizona State University",
+                highlights: [
+                  { text: "Arizona State University", className: "hud2-accent" },
+                ],
+                subtext: "SYS | EDU.Record",
+              }}
+              right={{
+                label: "Previous Position",
+                mainText: "AI/ML Engineer @ Codetrade.io",
+                highlights: [
+                  { text: "Codetrade.io", className: "hud2-accent" },
+                ],
+                subtext: "SYS | EXP.Record",
+              }}
             />
           )}
         </div>

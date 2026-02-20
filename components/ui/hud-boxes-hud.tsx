@@ -2,55 +2,48 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-type Props = {
-  leftText: string;
-  rightText: string;
+type Highlight = { text: string; className: string };
+
+type BoxConfig = {
+  label: string;
+  mainText: string;
+  highlights: Highlight[];
+  subtext: string;
 };
 
-/**
- * Animation stages (per box):
- * 0 - nothing
- * 1 - single centered + appears
- * 2 - + splits into 4 corner plus signs
- * 3 - frame lines draw between corner plus signs
- * 4 - content appears: label typewritten, then main text, then subtext
- */
+type Props = {
+  left: BoxConfig;
+  right: BoxConfig;
+};
 
-export function HudBoxesHUD({ leftText, rightText }: Props) {
+export function HudBoxesHUD({ left, right }: Props) {
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setStage(1), 100),   // single + appears
-      setTimeout(() => setStage(2), 500),   // splits to 4 corners
-      setTimeout(() => setStage(3), 900),   // frame draws
-      setTimeout(() => setStage(4), 1400),  // content typewriter starts
+      setTimeout(() => setStage(1), 120),
+      setTimeout(() => setStage(2), 520),
+      setTimeout(() => setStage(3), 950),
+      setTimeout(() => setStage(4), 1450),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
     <div className="hud2-wrap">
-      <HudFrame
-        stage={stage}
-        label="CURRENT"
-        text={leftText}
-        subtext="SYS EDU.RECORD"
-        delay={0}
-      />
-      <HudFrame
-        stage={stage}
-        label="PREVIOUS"
-        text={rightText}
-        subtext="SYS EXP.RECORD"
-        delay={80}
-      />
+      <HudFrame stage={stage} config={left} delay={0} />
+      <HudFrame stage={stage} config={right} delay={100} />
     </div>
   );
 }
 
 /* ── Inline typewriter hook ────────────────────────────── */
-function useTypewriter(text: string, start: boolean, speed = 32, onDone?: () => void) {
+function useTypewriter(
+  text: string,
+  start: boolean,
+  speed = 32,
+  onDone?: () => void
+) {
   const [out, setOut] = useState("");
   const [done, setDone] = useState(false);
 
@@ -78,23 +71,76 @@ function useTypewriter(text: string, start: boolean, speed = 32, onDone?: () => 
       cancelled = true;
       clearTimeout(id);
     };
-  }, [text, start, speed, onDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, start, speed]);
 
   return { out, done };
+}
+
+/* ── Render text with highlighted spans ────────────────── */
+function renderHighlighted(
+  visibleText: string,
+  fullText: string,
+  highlights: Highlight[]
+) {
+  if (!highlights.length) return visibleText;
+
+  const ranges: { start: number; end: number; className: string }[] = [];
+  for (const h of highlights) {
+    const idx = fullText.indexOf(h.text);
+    if (idx !== -1) {
+      ranges.push({
+        start: idx,
+        end: idx + h.text.length,
+        className: h.className,
+      });
+    }
+  }
+  ranges.sort((a, b) => a.start - b.start);
+
+  const parts: { text: string; className?: string }[] = [];
+  let cursor = 0;
+  for (const r of ranges) {
+    if (r.start > cursor) {
+      parts.push({ text: fullText.slice(cursor, r.start) });
+    }
+    parts.push({
+      text: fullText.slice(r.start, r.end),
+      className: r.className,
+    });
+    cursor = r.end;
+  }
+  if (cursor < fullText.length) {
+    parts.push({ text: fullText.slice(cursor) });
+  }
+
+  let charsLeft = visibleText.length;
+  return (
+    <>
+      {parts.map((p, i) => {
+        if (charsLeft <= 0) return null;
+        const show = p.text.slice(0, charsLeft);
+        charsLeft -= show.length;
+        return p.className ? (
+          <span key={i} className={p.className}>
+            {show}
+          </span>
+        ) : (
+          <span key={i}>{show}</span>
+        );
+      })}
+    </>
+  );
 }
 
 /* ── Single HUD Frame ─────────────────────────────────── */
 function HudFrame({
   stage,
-  label,
-  text,
-  subtext,
+  config,
   delay = 0,
 }: {
   stage: number;
-  label: string;
-  text: string;
-  subtext: string;
+  config: BoxConfig;
   delay?: number;
 }) {
   const [labelDone, setLabelDone] = useState(false);
@@ -103,9 +149,12 @@ function HudFrame({
   const onLabelDone = useCallback(() => setLabelDone(true), []);
   const onTextDone = useCallback(() => setTextDone(true), []);
 
-  const labelTw = useTypewriter(label, stage >= 4, 45, onLabelDone);
-  const textTw = useTypewriter(text, labelDone, 24, onTextDone);
-  const subTw = useTypewriter(subtext, textDone, 30);
+  const labelTw = useTypewriter(config.label, stage >= 4, 40, onLabelDone);
+  const textTw = useTypewriter(config.mainText, labelDone, 22, onTextDone);
+  const subTw = useTypewriter(config.subtext, textDone, 28);
+
+  const expanded = stage >= 2;
+  const drawn = stage >= 3;
 
   return (
     <div className="hud2-box" style={{ animationDelay: `${delay}ms` }}>
@@ -114,58 +163,70 @@ function HudFrame({
         className="hud2-center-plus"
         style={{
           opacity: stage === 1 ? 1 : 0,
-          transition: "opacity 180ms ease",
+          transition: "opacity 160ms ease",
         }}
       >
         <span className="hud2-plus-char">+</span>
       </div>
 
-      {/* Stage 2+: four corner plus signs */}
+      {/* Stage 2+: four corner + signs */}
       <div
         className="hud2-corners"
         style={{
           opacity: stage >= 2 ? 1 : 0,
-          transition: `opacity 200ms ease ${delay}ms`,
+          transition: `opacity 180ms ease ${delay}ms`,
         }}
       >
-        <span className="hud2-corner hud2-tl" data-expand={stage >= 2 ? "true" : "false"}>+</span>
-        <span className="hud2-corner hud2-tr" data-expand={stage >= 2 ? "true" : "false"}>+</span>
-        <span className="hud2-corner hud2-bl" data-expand={stage >= 2 ? "true" : "false"}>+</span>
-        <span className="hud2-corner hud2-br" data-expand={stage >= 2 ? "true" : "false"}>+</span>
+        <span
+          className="hud2-corner hud2-tl"
+          data-expand={expanded}
+        >
+          +
+        </span>
+        <span
+          className="hud2-corner hud2-tr"
+          data-expand={expanded}
+        >
+          +
+        </span>
+        <span
+          className="hud2-corner hud2-bl"
+          data-expand={expanded}
+        >
+          +
+        </span>
+        <span
+          className="hud2-corner hud2-br"
+          data-expand={expanded}
+        >
+          +
+        </span>
       </div>
 
-      {/* Stage 3+: frame lines */}
-      <svg
-        className="hud2-frame-svg"
-        viewBox="0 0 400 160"
-        preserveAspectRatio="none"
-        fill="none"
-        aria-hidden="true"
+      {/* Stage 3+: dashed border frame */}
+      <div
+        className="hud2-frame"
+        style={{
+          opacity: drawn ? 1 : 0,
+          transition: `opacity 400ms ease ${delay}ms`,
+        }}
       >
-        {/* top */}
-        <line x1="24" y1="16" x2="376" y2="16"
-          className={`hud2-line ${stage >= 3 ? "drawn" : ""}`}
-          style={{ transitionDelay: `${delay}ms` }} />
-        {/* bottom */}
-        <line x1="24" y1="144" x2="376" y2="144"
-          className={`hud2-line ${stage >= 3 ? "drawn" : ""}`}
-          style={{ transitionDelay: `${delay}ms` }} />
-        {/* left */}
-        <line x1="24" y1="16" x2="24" y2="144"
-          className={`hud2-line hud2-line-v ${stage >= 3 ? "drawn" : ""}`}
-          style={{ transitionDelay: `${delay + 80}ms` }} />
-        {/* right */}
-        <line x1="376" y1="16" x2="376" y2="144"
-          className={`hud2-line hud2-line-v ${stage >= 3 ? "drawn" : ""}`}
-          style={{ transitionDelay: `${delay + 80}ms` }} />
-      </svg>
+        {/* Top dashed line */}
+        <div className="hud2-edge hud2-edge-top" />
+        {/* Bottom dashed line */}
+        <div className="hud2-edge hud2-edge-bottom" />
+        {/* Left dashed line */}
+        <div className="hud2-edge hud2-edge-left" />
+        {/* Right dashed line */}
+        <div className="hud2-edge hud2-edge-right" />
+      </div>
 
-      {/* Stage 3+: subtle fill */}
+      {/* Glass fill */}
       <div
         className="hud2-fill"
         style={{
-          opacity: stage >= 3 ? 1 : 0,
-          transition: `opacity 400ms ease ${delay + 100}ms`,
+          opacity: drawn ? 1 : 0,
+          transition: `opacity 500ms ease ${delay + 120}ms`,
         }}
       />
 
@@ -174,7 +235,7 @@ function HudFrame({
         className="hud2-content"
         style={{
           opacity: stage >= 4 ? 1 : 0,
-          transition: `opacity 200ms ease ${delay}ms`,
+          transition: `opacity 180ms ease ${delay}ms`,
         }}
       >
         {/* Label top-left */}
@@ -183,10 +244,16 @@ function HudFrame({
           {!labelTw.done && stage >= 4 && <span className="hud2-cursor" />}
         </div>
 
-        {/* Main text centered */}
+        {/* Main text */}
         <div className="hud2-body">
-          {textTw.out}
-          {labelDone && !textTw.done && <span className="hud2-cursor" />}
+          <span>
+            {renderHighlighted(
+              textTw.out,
+              config.mainText,
+              config.highlights
+            )}
+            {labelDone && !textTw.done && <span className="hud2-cursor" />}
+          </span>
         </div>
 
         {/* Subtext bottom-right */}

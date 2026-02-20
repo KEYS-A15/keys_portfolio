@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Typewriter } from "@/components/ui/typewriter";
-import { HudBoxes } from "@/components/ui/hud-boxes";
 import { HudBoxesHUD } from "@/components/ui/hud-boxes-hud";
 
 export default function Home() {
@@ -32,8 +31,8 @@ export default function Home() {
 
           {bootDone && (
             <HudBoxesHUD
-              leftText="Master's Student @ Arizona State University"
-              rightText="Ex AI/ML Engineer @ Codetrade"
+              leftText="Master of Science @ Arizona State University"
+              rightText="AI/ML Engineer @ Codetrade"
             />
           )}
         </div>

@@ -1,125 +1,200 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Typewriter } from "@/components/ui/typewriter";
+import { useEffect, useState, useCallback } from "react";
 
 type Props = {
   leftText: string;
   rightText: string;
 };
 
-export function HudBoxesHUD({
-  leftText = "Master's Student @ Arizona State University",
-  rightText = "Ex AI/ML Engineer @ Codetrade",
-}: Props) {
-  const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
+/**
+ * Animation stages (per box):
+ * 0 - nothing
+ * 1 - single centered + appears
+ * 2 - + splits into 4 corner plus signs
+ * 3 - frame lines draw between corner plus signs
+ * 4 - content appears: label typewritten, then main text, then subtext
+ */
+
+export function HudBoxesHUD({ leftText, rightText }: Props) {
+  const [stage, setStage] = useState(0);
 
   useEffect(() => {
-    const t1 = window.setTimeout(() => setStage(1), 120);  // + markers
-    const t2 = window.setTimeout(() => setStage(2), 260);  // frame draw
-    const t3 = window.setTimeout(() => setStage(3), 760);  // type text
-    return () => [t1, t2, t3].forEach(clearTimeout);
+    const timers = [
+      setTimeout(() => setStage(1), 100),   // single + appears
+      setTimeout(() => setStage(2), 500),   // splits to 4 corners
+      setTimeout(() => setStage(3), 900),   // frame draws
+      setTimeout(() => setStage(4), 1400),  // content typewriter starts
+    ];
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
     <div className="hud2-wrap">
       <HudFrame
-        side="left"
         stage={stage}
         label="CURRENT"
         text={leftText}
-        highlights={[
-          { value: "Arizona State University", className: "hud2-accent" },
-          { value: "Master's Student", className: "hud2-muted" },
-        ]}
+        subtext="SYS EDU.RECORD"
+        delay={0}
       />
       <HudFrame
-        side="right"
         stage={stage}
         label="PREVIOUS"
         text={rightText}
-        delay={90}
-        highlights={[
-          { value: "Codetrade", className: "hud2-accent" },
-          { value: "AI/ML Engineer", className: "hud2-muted" },
-        ]}
+        subtext="SYS EXP.RECORD"
+        delay={80}
       />
     </div>
   );
 }
 
+/* ── Inline typewriter hook ────────────────────────────── */
+function useTypewriter(text: string, start: boolean, speed = 32, onDone?: () => void) {
+  const [out, setOut] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!start) return;
+    setOut("");
+    setDone(false);
+    let i = 0;
+    let cancelled = false;
+
+    const tick = () => {
+      if (cancelled) return;
+      i++;
+      setOut(text.slice(0, i));
+      if (i >= text.length) {
+        setDone(true);
+        onDone?.();
+        return;
+      }
+      setTimeout(tick, speed);
+    };
+
+    const id = setTimeout(tick, speed);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
+  }, [text, start, speed, onDone]);
+
+  return { out, done };
+}
+
+/* ── Single HUD Frame ─────────────────────────────────── */
 function HudFrame({
-  side,
   stage,
   label,
   text,
+  subtext,
   delay = 0,
-  highlights,
 }: {
-  side: "left" | "right";
   stage: number;
   label: string;
   text: string;
+  subtext: string;
   delay?: number;
-  highlights: { value: string; className: string }[];
 }) {
+  const [labelDone, setLabelDone] = useState(false);
+  const [textDone, setTextDone] = useState(false);
+
+  const onLabelDone = useCallback(() => setLabelDone(true), []);
+  const onTextDone = useCallback(() => setTextDone(true), []);
+
+  const labelTw = useTypewriter(label, stage >= 4, 45, onLabelDone);
+  const textTw = useTypewriter(text, labelDone, 24, onTextDone);
+  const subTw = useTypewriter(subtext, textDone, 30);
+
   return (
-    <div className={`hud2-box ${side === "left" ? "hud2-left" : "hud2-right"}`}>
-      {/* subtle hologram fill */}
-      <div className={`hud2-fill ${stage >= 2 ? "on" : ""}`} style={{ transitionDelay: `${delay}ms` }} />
+    <div className="hud2-box" style={{ animationDelay: `${delay}ms` }}>
+      {/* Stage 1: single centered + */}
+      <div
+        className="hud2-center-plus"
+        style={{
+          opacity: stage === 1 ? 1 : 0,
+          transition: "opacity 180ms ease",
+        }}
+      >
+        <span className="hud2-plus-char">+</span>
+      </div>
 
-      <svg className="hud2-svg" viewBox="0 0 520 220" fill="none" aria-hidden="true">
-        {/* corner plus markers */}
-        <g className={stage >= 1 ? "hud2-plus on" : "hud2-plus"}>
-          <PlusMark x={30} y={30} />
-          <PlusMark x={490} y={30} />
-          <PlusMark x={30} y={190} />
-          <PlusMark x={490} y={190} />
-        </g>
+      {/* Stage 2+: four corner plus signs */}
+      <div
+        className="hud2-corners"
+        style={{
+          opacity: stage >= 2 ? 1 : 0,
+          transition: `opacity 200ms ease ${delay}ms`,
+        }}
+      >
+        <span className="hud2-corner hud2-tl" data-expand={stage >= 2 ? "true" : "false"}>+</span>
+        <span className="hud2-corner hud2-tr" data-expand={stage >= 2 ? "true" : "false"}>+</span>
+        <span className="hud2-corner hud2-bl" data-expand={stage >= 2 ? "true" : "false"}>+</span>
+        <span className="hud2-corner hud2-br" data-expand={stage >= 2 ? "true" : "false"}>+</span>
+      </div>
 
-        {/* frame outline + ticks */}
-        <g className={stage >= 2 ? "hud2-lines on" : "hud2-lines"} style={{ transitionDelay: `${delay}ms` }}>
-          <path className="hud2-stroke hud2-draw d0" d="M56 46 H464" />
-          <path className="hud2-stroke hud2-draw d0" d="M56 174 H464" />
-          <path className="hud2-stroke hud2-draw d1" d="M56 46 V174" />
-          <path className="hud2-stroke hud2-draw d1" d="M464 46 V174" />
-
-          {/* small HUD ticks */}
-          <path className="hud2-stroke hud2-draw d2" d="M56 70 H80" />
-          <path className="hud2-stroke hud2-draw d2" d="M464 150 H440" />
-
-          {/* label bracket */}
-          <path className="hud2-stroke hud2-draw d2" d="M90 62 H220" />
-          <path className="hud2-stroke hud2-draw d2" d="M90 62 V78" />
-        </g>
+      {/* Stage 3+: frame lines */}
+      <svg
+        className="hud2-frame-svg"
+        viewBox="0 0 400 160"
+        preserveAspectRatio="none"
+        fill="none"
+        aria-hidden="true"
+      >
+        {/* top */}
+        <line x1="24" y1="16" x2="376" y2="16"
+          className={`hud2-line ${stage >= 3 ? "drawn" : ""}`}
+          style={{ transitionDelay: `${delay}ms` }} />
+        {/* bottom */}
+        <line x1="24" y1="144" x2="376" y2="144"
+          className={`hud2-line ${stage >= 3 ? "drawn" : ""}`}
+          style={{ transitionDelay: `${delay}ms` }} />
+        {/* left */}
+        <line x1="24" y1="16" x2="24" y2="144"
+          className={`hud2-line hud2-line-v ${stage >= 3 ? "drawn" : ""}`}
+          style={{ transitionDelay: `${delay + 80}ms` }} />
+        {/* right */}
+        <line x1="376" y1="16" x2="376" y2="144"
+          className={`hud2-line hud2-line-v ${stage >= 3 ? "drawn" : ""}`}
+          style={{ transitionDelay: `${delay + 80}ms` }} />
       </svg>
 
-      {/* label + content */}
-      <div className={`hud2-content ${stage >= 2 ? "on" : ""}`} style={{ transitionDelay: `${delay}ms` }}>
-        <div className="hud2-label">{label}</div>
+      {/* Stage 3+: subtle fill */}
+      <div
+        className="hud2-fill"
+        style={{
+          opacity: stage >= 3 ? 1 : 0,
+          transition: `opacity 400ms ease ${delay + 100}ms`,
+        }}
+      />
 
-        <div className="hud2-body">
-          {stage >= 3 ? (
-            <Typewriter lines={[text]} speedMs={22} highlights={highlights} />
-          ) : null}
+      {/* Stage 4: typewritten content */}
+      <div
+        className="hud2-content"
+        style={{
+          opacity: stage >= 4 ? 1 : 0,
+          transition: `opacity 200ms ease ${delay}ms`,
+        }}
+      >
+        {/* Label top-left */}
+        <div className="hud2-label">
+          {labelTw.out}
+          {!labelTw.done && stage >= 4 && <span className="hud2-cursor" />}
         </div>
 
-        <div className="hud2-strip">
-          <span>SYS</span>
-          <span className="hud2-accent">◆</span>
-          <span>{side === "left" ? "EDU.RECORD" : "EXP.RECORD"}</span>
+        {/* Main text centered */}
+        <div className="hud2-body">
+          {textTw.out}
+          {labelDone && !textTw.done && <span className="hud2-cursor" />}
+        </div>
+
+        {/* Subtext bottom-right */}
+        <div className="hud2-subtext">
+          {subTw.out}
+          {textDone && !subTw.done && <span className="hud2-cursor" />}
         </div>
       </div>
     </div>
-  );
-}
-
-function PlusMark({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x} ${y})`}>
-      <path className="hud2-stroke hud2-draw d0" d="M-10 0 H10" />
-      <path className="hud2-stroke hud2-draw d0" d="M0 -10 V10" />
-      <circle className="hud2-dot" cx="0" cy="0" r="1.8" />
-    </g>
   );
 }

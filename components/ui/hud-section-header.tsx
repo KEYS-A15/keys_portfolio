@@ -14,12 +14,10 @@ type Props = {
 export function HudSectionHeader({ text, onDone }: Props) {
   const [out, setOut] = useState("");
   const [done, setDone] = useState(false);
-  const startedRef = useRef(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-
     let i = 0;
     let cancelled = false;
     const full = text;
@@ -30,15 +28,18 @@ export function HudSectionHeader({ text, onDone }: Props) {
       setOut(full.slice(0, i));
       if (i >= full.length) {
         setDone(true);
-        onDone?.();
+        onDoneRef.current?.();
         return;
       }
       setTimeout(tick, 36);
     };
 
-    setTimeout(tick, 200);
-    return () => { cancelled = true; };
-  }, [text, onDone]);
+    const t = setTimeout(tick, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [text]);
 
   return (
     <div className="flex items-center gap-3 mb-6">
@@ -47,7 +48,7 @@ export function HudSectionHeader({ text, onDone }: Props) {
       </span>
       <h2 className="text-lg tracking-wide text-[rgb(var(--fg))]">
         {out}
-        {!done && <span className="cursor-block" style={{ height: "0.85em", width: "0.6ch" }} />}
+        {!done && <span className="hud2-cursor" />}
       </h2>
       {done && (
         <div className="flex-1 h-px bg-[rgb(var(--accent)/0.15)] ml-2" />

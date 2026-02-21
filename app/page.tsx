@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Typewriter } from "@/components/ui/typewriter";
 import { HudBoxesHUD } from "@/components/ui/hud-boxes-hud";
 import { HudProfile } from "@/components/ui/hud-profile";
+import { HudGlitch } from "@/components/ui/hud-glitch";
 
 export default function Home() {
   const [bootDone, setBootDone] = useState(false);
@@ -41,34 +42,36 @@ export default function Home() {
               {/* HUD info boxes */}
               {bootDone && (
                 <div className="mt-6 pl-10">
-                  <HudBoxesHUD
-                    left={{
-                      label: "Current Position",
-                      mainText: "Masters of Science in Computer Science @ Arizona State University",
-                      highlights: [
-                        { text: "Arizona State University", className: "hud2-accent" },
-                      ],
-                      subtext: "SYS | EDU.Record",
-                    }}
-                    right={{
-                      label: "Previous Positions",
-                      entries: [
-                        {
-                          text: "AI/ML Engineer @ Codetrade.io",
-                          highlights: [
-                            { text: "Codetrade.io", className: "hud2-accent" },
-                          ],
-                        },
-                        {
-                          text: "Data Science Intern @ Vertocity",
-                          highlights: [
-                            { text: "Vertocity", className: "hud2-accent" },
-                          ],
-                        },
-                      ],
-                      subtext: "SYS | EXP.Record",
-                    }}
-                  />
+                  <HudGlitch intervalMin={4000} intervalMax={9000}>
+                    <HudBoxesHUD
+                      left={{
+                        label: "Current Position",
+                        mainText: "Masters of Science in Computer Science @ Arizona State University",
+                        highlights: [
+                          { text: "Arizona State University", className: "hud2-accent" },
+                        ],
+                        subtext: "SYS | EDU.Record",
+                      }}
+                      right={{
+                        label: "Previous Positions",
+                        entries: [
+                          {
+                            text: "AI/ML Engineer @ Codetrade.io",
+                            highlights: [
+                              { text: "Codetrade.io", className: "hud2-accent" },
+                            ],
+                          },
+                          {
+                            text: "Data Science Intern @ Vertocity",
+                            highlights: [
+                              { text: "Vertocity", className: "hud2-accent" },
+                            ],
+                          },
+                        ],
+                        subtext: "SYS | EXP.Record",
+                      }}
+                    />
+                  </HudGlitch>
                 </div>
               )}
             </div>
@@ -76,10 +79,12 @@ export default function Home() {
             {/* Right column: profile image box */}
             {bootDone && (
               <div className="mt-6 lg:mt-0 lg:w-[300px] lg:flex-shrink-0 self-stretch min-h-[260px]">
-                <HudProfile
-                  src="/images/profile.jpg"
-                  alt="Shrey Gajjar - profile photo"
-                />
+                <HudGlitch intervalMin={5000} intervalMax={12000} className="h-full">
+                  <HudProfile
+                    src="/images/profile.jpg"
+                    alt="Shrey Gajjar - profile photo"
+                  />
+                </HudGlitch>
               </div>
             )}
           </div>

@@ -315,7 +315,7 @@ body {
   margin-top: 4px;
 }
 
-/* ── Multi-entry pill row ──────────── */
+/* ── Multi-entry pill row ──────���───── */
 .hud2-pills {
   flex: 1;
   display: flex;
@@ -499,4 +499,61 @@ body {
   letter-spacing: 0.12em;
   color: rgb(var(--fg) / 0.3);
   user-select: none;
+}
+
+/* ─────────────────────────────────────────
+   HUD Glitch Effect (hud-glitch.tsx)
+───────────────────────────────────────── */
+.hud-glitch-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.hud-glitch-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Brief flicker on the entire box during glitch */
+.hud-glitch-wrap[data-glitching="true"] > .hud-glitch-content {
+  animation: hud-glitch-flicker 180ms steps(2, end);
+}
+
+@keyframes hud-glitch-flicker {
+  0%   { opacity: 1; }
+  20%  { opacity: 0.82; }
+  40%  { opacity: 1; }
+  60%  { opacity: 0.88; }
+  80%  { opacity: 1; }
+  100% { opacity: 0.95; }
+}
+
+/* Horizontal slice overlay */
+.hud-glitch-slice {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  background: rgb(var(--accent) / 0.04);
+}
+
+/* Color channel shift strips */
+.hud-glitch-channel {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hud-glitch-red {
+  background: rgb(255 40 40 / 0.06);
+  mix-blend-mode: screen;
+}
+
+.hud-glitch-cyan {
+  background: rgb(40 255 255 / 0.06);
+  mix-blend-mode: screen;
 }

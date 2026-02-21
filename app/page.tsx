@@ -86,7 +86,7 @@ export default function Home() {
       <main>
         <div className="pt-10 pl-8 pr-10 md:pt-12 md:pl-10 md:pr-14">
           {/* ── Hero section ─────────────────── */}
-          <div className="flex flex-col lg:flex-row lg:gap-10">
+          <div className="flex flex-col md:flex-row md:gap-8 lg:gap-10">
             {/* Left column */}
             <div className="flex-1 min-w-0">
               {/* Typewriter line */}
@@ -147,7 +147,7 @@ export default function Home() {
 
             {/* Right column: profile image box */}
             {bootDone && (
-              <div className="mt-6 lg:mt-0 lg:w-[300px] lg:flex-shrink-0 self-stretch min-h-[260px]">
+              <div className="mt-6 md:mt-0 md:w-[200px] lg:w-[300px] md:flex-shrink-0 self-stretch min-h-[220px] md:min-h-[260px]">
                 <HudGlitch intervalMin={5000} intervalMax={12000} className="h-full">
                   <HudProfile
                     src="/images/profile.jpg"

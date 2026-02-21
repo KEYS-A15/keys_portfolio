@@ -14,13 +14,13 @@ export default function Home() {
       <div className="scanlines" aria-hidden="true" />
 
       <main>
-        <div className="pt-10 pl-8 pr-6 md:pt-12 md:pl-10">
+        <div className="pt-10 pl-8 pr-10 md:pt-12 md:pl-10 md:pr-14">
           {/* Two-column layout: left = text+boxes, right = profile image */}
-          <div className="flex flex-col lg:flex-row lg:gap-6">
+          <div className="flex flex-col lg:flex-row lg:gap-10">
             {/* Left column */}
-            <div className="flex-1 min-w-0 lg:max-w-[680px]">
+            <div className="flex-1 min-w-0">
               {/* Typewriter line */}
-              <div className="flex items-start gap-4 font-medium leading-relaxed">
+              <div className="flex items-start gap-4 font-medium leading-relaxed whitespace-nowrap">
                 <span className="text-[rgb(var(--accent))] text-2xl md:text-3xl select-none leading-relaxed">
                   {">"}
                 </span>
@@ -38,7 +38,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* HUD info boxes (stacked vertically) */}
+              {/* HUD info boxes */}
               {bootDone && (
                 <div className="mt-6 pl-10">
                   <HudBoxesHUD
@@ -65,7 +65,7 @@ export default function Home() {
 
             {/* Right column: profile image box */}
             {bootDone && (
-              <div className="mt-6 lg:mt-0 lg:w-[280px] lg:flex-shrink-0 self-stretch min-h-[260px]">
+              <div className="mt-6 lg:mt-0 lg:w-[300px] lg:flex-shrink-0 self-stretch min-h-[260px]">
                 <HudProfile
                   src="/images/profile.jpg"
                   alt="Shrey Gajjar - profile photo"

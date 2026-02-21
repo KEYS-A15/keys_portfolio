@@ -137,11 +137,18 @@ body {
   gap: 14px;
 }
 
+@media (min-width: 640px) {
+  .hud2-wrap {
+    flex-direction: row;
+    gap: 20px;
+  }
+}
+
 /* ── Individual box ─────────────────── */
 .hud2-box {
   position: relative;
   min-height: 100px;
-  max-width: 440px;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -400,8 +407,6 @@ body {
   object-fit: cover;
   width: calc(100% - 20px);
   height: calc(100% - 20px);
-  filter: saturate(0.7) contrast(1.05);
-  mix-blend-mode: luminosity;
   opacity: 0.85;
 }
 

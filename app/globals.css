@@ -137,7 +137,7 @@ body {
   gap: 14px;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 1024px) {
   .hud2-wrap {
     flex-direction: row;
     gap: 20px;
@@ -149,7 +149,7 @@ body {
   position: relative;
   min-height: 100px;
   flex: 1;
-  overflow: hidden;
+  min-width: 0;
 }
 
 /* ── Stage 1: single centered + ────── */
@@ -275,12 +275,12 @@ body {
 
 /* ── Content layer ─────────────────── */
 .hud2-content {
-  position: absolute;
-  inset: 0;
+  position: relative;
   z-index: 30;
   display: flex;
   flex-direction: column;
   padding: 14px 18px 10px;
+  min-height: 100px;
 }
 
 /* Label: top-left, small */
@@ -315,23 +315,29 @@ body {
   margin-top: 4px;
 }
 
-/* ── Multi-entry pill row ──────�����───── */
+/* ── Multi-entry pill row ──────────── */
 .hud2-pills {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 0 4px;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 1024px) {
+  .hud2-pills {
+    flex-wrap: nowrap;
+  }
 }
 
 .hud2-pill {
   position: relative;
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 14px;
-  font-size: 12px;
+  padding: 6px 12px;
+  font-size: 11px;
   line-height: 1.45;
   color: rgb(var(--fg));
   border: 1px solid rgb(var(--accent) / 0.22);
@@ -353,6 +359,15 @@ body {
     100% 100%;
   text-align: center;
   white-space: nowrap;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .hud2-pill {
+    white-space: normal;
+    font-size: 10px;
+    padding: 5px 10px;
+  }
 }
 
 /* ── Inline mini cursor ────────────── */

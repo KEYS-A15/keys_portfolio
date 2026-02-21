@@ -171,7 +171,35 @@ body {
   line-height: 1;
 }
 
-/* ── Stage 2: four corner + signs ──── */
+/* ── Stage 2: horizontal + expansion ── */
+.hud2-h-expand {
+  position: absolute;
+  inset: 0;
+  z-index: 33;
+  pointer-events: none;
+}
+
+.hud2-h-left,
+.hud2-h-right {
+  position: absolute;
+  top: 50%;
+  font-size: 14px;
+  font-weight: 300;
+  color: rgb(var(--accent) / 0.7);
+  text-shadow: 0 0 6px rgb(var(--accent) / 0.25);
+  line-height: 1;
+  transition: all 380ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Start at center */
+.hud2-h-left  { left: 50%; transform: translate(-50%, -50%); }
+.hud2-h-right { right: 50%; transform: translate(50%, -50%); }
+
+/* Expand to left/right edges */
+.hud2-h-left[data-expand="true"]  { left: -2px; transform: translate(0, -50%); }
+.hud2-h-right[data-expand="true"] { right: -2px; transform: translate(0, -50%); }
+
+/* ── Stage 3: four corner + signs (split vertically from edges) ── */
 .hud2-corners {
   position: absolute;
   inset: 0;
@@ -186,21 +214,22 @@ body {
   color: rgb(var(--accent) / 0.7);
   text-shadow: 0 0 6px rgb(var(--accent) / 0.25);
   line-height: 1;
-  transition: all 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 380ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* All corners start at center, expand on data-expand="true" */
-.hud2-tl { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.hud2-tr { top: 50%; right: 50%; transform: translate(50%, -50%); }
-.hud2-bl { bottom: 50%; left: 50%; transform: translate(-50%, 50%); }
-.hud2-br { bottom: 50%; right: 50%; transform: translate(50%, 50%); }
+/* Corners start at left/right edges, vertically centered */
+.hud2-tl { top: 50%; left: -2px; transform: translate(0, -50%); }
+.hud2-tr { top: 50%; right: -2px; transform: translate(0, -50%); }
+.hud2-bl { top: 50%; left: -2px; transform: translate(0, -50%); }
+.hud2-br { top: 50%; right: -2px; transform: translate(0, -50%); }
 
+/* Expand vertically to corners */
 .hud2-tl[data-expand="true"] { top: -2px; left: -2px; transform: translate(0, 0); }
 .hud2-tr[data-expand="true"] { top: -2px; right: -2px; transform: translate(0, 0); }
-.hud2-bl[data-expand="true"] { bottom: -2px; left: -2px; transform: translate(0, 0); }
-.hud2-br[data-expand="true"] { bottom: -2px; right: -2px; transform: translate(0, 0); }
+.hud2-bl[data-expand="true"] { top: auto; bottom: -2px; left: -2px; transform: translate(0, 0); }
+.hud2-br[data-expand="true"] { top: auto; bottom: -2px; right: -2px; transform: translate(0, 0); }
 
-/* ── Stage 3: dashed frame (CSS edges) ── */
+/* ── Stage 4: dashed frame (CSS edges) ── */
 .hud2-frame {
   position: absolute;
   inset: 0;

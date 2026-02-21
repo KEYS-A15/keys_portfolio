@@ -1,125 +1,363 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Typewriter } from "@/components/ui/typewriter";
+import { useEffect, useState, useCallback } from "react";
 
-type Props = {
-  leftText: string;
-  rightText: string;
+type Highlight = { text: string; className: string };
+
+type SingleBoxConfig = {
+  label: string;
+  mainText: string;
+  highlights: Highlight[];
+  subtext: string;
+  entries?: never;
 };
 
-export function HudBoxesHUD({
-  leftText = "Master's Student @ Arizona State University",
-  rightText = "Ex AI/ML Engineer @ Codetrade",
-}: Props) {
-  const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
+type MultiBoxConfig = {
+  label: string;
+  entries: { text: string; highlights: Highlight[] }[];
+  subtext: string;
+  mainText?: never;
+  highlights?: never;
+};
+
+type BoxConfig = SingleBoxConfig | MultiBoxConfig;
+
+type Props = {
+  left: BoxConfig;
+  right: BoxConfig;
+};
+
+export function HudBoxesHUD({ left, right }: Props) {
+  const [stage, setStage] = useState(0);
 
   useEffect(() => {
-    const t1 = window.setTimeout(() => setStage(1), 120);  // + markers
-    const t2 = window.setTimeout(() => setStage(2), 260);  // frame draw
-    const t3 = window.setTimeout(() => setStage(3), 760);  // type text
-    return () => [t1, t2, t3].forEach(clearTimeout);
+    const timers = [
+      setTimeout(() => setStage(1), 120),
+      setTimeout(() => setStage(2), 520),
+      setTimeout(() => setStage(3), 950),
+      setTimeout(() => setStage(4), 1450),
+    ];
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
     <div className="hud2-wrap">
-      <HudFrame
-        side="left"
-        stage={stage}
-        label="CURRENT"
-        text={leftText}
-        highlights={[
-          { value: "Arizona State University", className: "hud2-accent" },
-          { value: "Master's Student", className: "hud2-muted" },
-        ]}
-      />
-      <HudFrame
-        side="right"
-        stage={stage}
-        label="PREVIOUS"
-        text={rightText}
-        delay={90}
-        highlights={[
-          { value: "Codetrade", className: "hud2-accent" },
-          { value: "AI/ML Engineer", className: "hud2-muted" },
-        ]}
-      />
+      <HudFrame stage={stage} config={left} delay={0} />
+      <HudFrame stage={stage} config={right} delay={100} />
     </div>
   );
 }
 
-function HudFrame({
-  side,
-  stage,
-  label,
-  text,
-  delay = 0,
-  highlights,
-}: {
-  side: "left" | "right";
-  stage: number;
-  label: string;
-  text: string;
-  delay?: number;
-  highlights: { value: string; className: string }[];
-}) {
+/* ── Inline typewriter hook ────────────────────────────── */
+function useTypewriter(
+  text: string,
+  start: boolean,
+  speed = 32,
+  onDone?: () => void
+) {
+  const [out, setOut] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!start) return;
+    setOut("");
+    setDone(false);
+    let i = 0;
+    let cancelled = false;
+
+    const tick = () => {
+      if (cancelled) return;
+      i++;
+      setOut(text.slice(0, i));
+      if (i >= text.length) {
+        setDone(true);
+        onDone?.();
+        return;
+      }
+      setTimeout(tick, speed);
+    };
+
+    const id = setTimeout(tick, speed);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, start, speed]);
+
+  return { out, done };
+}
+
+/* ── Render text with highlighted spans ────────────────── */
+function renderHighlighted(
+  visibleText: string,
+  fullText: string,
+  highlights: Highlight[]
+) {
+  if (!highlights.length) return visibleText;
+
+  const ranges: { start: number; end: number; className: string }[] = [];
+  for (const h of highlights) {
+    const idx = fullText.indexOf(h.text);
+    if (idx !== -1) {
+      ranges.push({
+        start: idx,
+        end: idx + h.text.length,
+        className: h.className,
+      });
+    }
+  }
+  ranges.sort((a, b) => a.start - b.start);
+
+  const parts: { text: string; className?: string }[] = [];
+  let cursor = 0;
+  for (const r of ranges) {
+    if (r.start > cursor) {
+      parts.push({ text: fullText.slice(cursor, r.start) });
+    }
+    parts.push({
+      text: fullText.slice(r.start, r.end),
+      className: r.className,
+    });
+    cursor = r.end;
+  }
+  if (cursor < fullText.length) {
+    parts.push({ text: fullText.slice(cursor) });
+  }
+
+  let charsLeft = visibleText.length;
   return (
-    <div className={`hud2-box ${side === "left" ? "hud2-left" : "hud2-right"}`}>
-      {/* subtle hologram fill */}
-      <div className={`hud2-fill ${stage >= 2 ? "on" : ""}`} style={{ transitionDelay: `${delay}ms` }} />
+    <>
+      {parts.map((p, i) => {
+        if (charsLeft <= 0) return null;
+        const show = p.text.slice(0, charsLeft);
+        charsLeft -= show.length;
+        return p.className ? (
+          <span key={i} className={p.className}>
+            {show}
+          </span>
+        ) : (
+          <span key={i}>{show}</span>
+        );
+      })}
+    </>
+  );
+}
 
-      <svg className="hud2-svg" viewBox="0 0 520 220" fill="none" aria-hidden="true">
-        {/* corner plus markers */}
-        <g className={stage >= 1 ? "hud2-plus on" : "hud2-plus"}>
-          <PlusMark x={30} y={30} />
-          <PlusMark x={490} y={30} />
-          <PlusMark x={30} y={190} />
-          <PlusMark x={490} y={190} />
-        </g>
+/* ── Single HUD Frame ─────────────────────────────────── */
+function HudFrame({
+  stage,
+  config,
+  delay = 0,
+}: {
+  stage: number;
+  config: BoxConfig;
+  delay?: number;
+}) {
+  const isMulti = !!config.entries;
 
-        {/* frame outline + ticks */}
-        <g className={stage >= 2 ? "hud2-lines on" : "hud2-lines"} style={{ transitionDelay: `${delay}ms` }}>
-          <path className="hud2-stroke hud2-draw d0" d="M56 46 H464" />
-          <path className="hud2-stroke hud2-draw d0" d="M56 174 H464" />
-          <path className="hud2-stroke hud2-draw d1" d="M56 46 V174" />
-          <path className="hud2-stroke hud2-draw d1" d="M464 46 V174" />
+  return (
+    <div className="hud2-box" style={{ animationDelay: `${delay}ms` }}>
+      {/* Stage 1: single centered + */}
+      <div
+        className="hud2-center-plus"
+        style={{
+          opacity: stage === 1 ? 1 : 0,
+          transition: "opacity 160ms ease",
+        }}
+      >
+        <span className="hud2-plus-char">+</span>
+      </div>
 
-          {/* small HUD ticks */}
-          <path className="hud2-stroke hud2-draw d2" d="M56 70 H80" />
-          <path className="hud2-stroke hud2-draw d2" d="M464 150 H440" />
+      {/* Stage 2+: four corner + signs */}
+      <div
+        className="hud2-corners"
+        style={{
+          opacity: stage >= 2 ? 1 : 0,
+          transition: `opacity 180ms ease ${delay}ms`,
+        }}
+      >
+        <span className="hud2-corner hud2-tl" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-tr" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-bl" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-br" data-expand={stage >= 2}>+</span>
+      </div>
 
-          {/* label bracket */}
-          <path className="hud2-stroke hud2-draw d2" d="M90 62 H220" />
-          <path className="hud2-stroke hud2-draw d2" d="M90 62 V78" />
-        </g>
-      </svg>
+      {/* Stage 3+: dashed border frame */}
+      <div
+        className="hud2-frame"
+        style={{
+          opacity: stage >= 3 ? 1 : 0,
+          transition: `opacity 400ms ease ${delay}ms`,
+        }}
+      >
+        <div className="hud2-edge hud2-edge-top" />
+        <div className="hud2-edge hud2-edge-bottom" />
+        <div className="hud2-edge hud2-edge-left" />
+        <div className="hud2-edge hud2-edge-right" />
+      </div>
 
-      {/* label + content */}
-      <div className={`hud2-content ${stage >= 2 ? "on" : ""}`} style={{ transitionDelay: `${delay}ms` }}>
-        <div className="hud2-label">{label}</div>
+      {/* Glass fill */}
+      <div
+        className="hud2-fill"
+        style={{
+          opacity: stage >= 3 ? 1 : 0,
+          transition: `opacity 500ms ease ${delay + 120}ms`,
+        }}
+      />
 
-        <div className="hud2-body">
-          {stage >= 3 ? (
-            <Typewriter lines={[text]} speedMs={22} highlights={highlights} />
-          ) : null}
-        </div>
-
-        <div className="hud2-strip">
-          <span>SYS</span>
-          <span className="hud2-accent">◆</span>
-          <span>{side === "left" ? "EDU.RECORD" : "EXP.RECORD"}</span>
-        </div>
+      {/* Stage 4: typewritten content */}
+      <div
+        className="hud2-content"
+        style={{
+          opacity: stage >= 4 ? 1 : 0,
+          transition: `opacity 180ms ease ${delay}ms`,
+        }}
+      >
+        {isMulti ? (
+          <MultiContent
+            label={config.label}
+            entries={config.entries!}
+            subtext={config.subtext}
+            active={stage >= 4}
+          />
+        ) : (
+          <SingleContent
+            label={config.label}
+            mainText={config.mainText!}
+            highlights={config.highlights || []}
+            subtext={config.subtext}
+            active={stage >= 4}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function PlusMark({ x, y }: { x: number; y: number }) {
+/* ── Single text content ──────────────────────────────── */
+function SingleContent({
+  label,
+  mainText,
+  highlights,
+  subtext,
+  active,
+}: {
+  label: string;
+  mainText: string;
+  highlights: Highlight[];
+  subtext: string;
+  active: boolean;
+}) {
+  const [labelDone, setLabelDone] = useState(false);
+  const [textDone, setTextDone] = useState(false);
+
+  const onLabelDone = useCallback(() => setLabelDone(true), []);
+  const onTextDone = useCallback(() => setTextDone(true), []);
+
+  const labelTw = useTypewriter(label, active, 40, onLabelDone);
+  const textTw = useTypewriter(mainText, labelDone, 22, onTextDone);
+  const subTw = useTypewriter(subtext, textDone, 28);
+
   return (
-    <g transform={`translate(${x} ${y})`}>
-      <path className="hud2-stroke hud2-draw d0" d="M-10 0 H10" />
-      <path className="hud2-stroke hud2-draw d0" d="M0 -10 V10" />
-      <circle className="hud2-dot" cx="0" cy="0" r="1.8" />
-    </g>
+    <>
+      <div className="hud2-label">
+        {labelTw.out}
+        {!labelTw.done && active && <span className="hud2-cursor" />}
+      </div>
+      <div className="hud2-body">
+        <span>
+          {renderHighlighted(textTw.out, mainText, highlights)}
+          {labelDone && !textTw.done && <span className="hud2-cursor" />}
+        </span>
+      </div>
+      <div className="hud2-subtext">
+        {subTw.out}
+        {textDone && !subTw.done && <span className="hud2-cursor" />}
+      </div>
+    </>
+  );
+}
+
+/* ── Multi-entry pill content ─────────────────────────── */
+function MultiContent({
+  label,
+  entries,
+  subtext,
+  active,
+}: {
+  label: string;
+  entries: { text: string; highlights: Highlight[] }[];
+  subtext: string;
+  active: boolean;
+}) {
+  const [labelDone, setLabelDone] = useState(false);
+  const [entriesDone, setEntriesDone] = useState<boolean[]>(
+    entries.map(() => false)
+  );
+  const allEntriesDone = entriesDone.every(Boolean);
+
+  const onLabelDone = useCallback(() => setLabelDone(true), []);
+
+  const labelTw = useTypewriter(label, active, 40, onLabelDone);
+  const subTw = useTypewriter(subtext, allEntriesDone, 28);
+
+  const markEntryDone = useCallback(
+    (idx: number) => {
+      setEntriesDone((prev) => {
+        const next = [...prev];
+        next[idx] = true;
+        return next;
+      });
+    },
+    []
+  );
+
+  return (
+    <>
+      <div className="hud2-label">
+        {labelTw.out}
+        {!labelTw.done && active && <span className="hud2-cursor" />}
+      </div>
+      <div className="hud2-pills">
+        {entries.map((entry, i) => (
+          <PillEntry
+            key={i}
+            text={entry.text}
+            highlights={entry.highlights}
+            start={i === 0 ? labelDone : entriesDone[i - 1]}
+            onDone={() => markEntryDone(i)}
+          />
+        ))}
+      </div>
+      <div className="hud2-subtext">
+        {subTw.out}
+        {allEntriesDone && !subTw.done && <span className="hud2-cursor" />}
+      </div>
+    </>
+  );
+}
+
+/* ── Individual pill entry ────────────────────────────── */
+function PillEntry({
+  text,
+  highlights,
+  start,
+  onDone,
+}: {
+  text: string;
+  highlights: Highlight[];
+  start: boolean;
+  onDone: () => void;
+}) {
+  const tw = useTypewriter(text, start, 22, onDone);
+
+  return (
+    <div className="hud2-pill">
+      <span>
+        {renderHighlighted(tw.out, text, highlights)}
+        {start && !tw.done && <span className="hud2-cursor" />}
+      </span>
+    </div>
   );
 }

@@ -315,7 +315,7 @@ body {
   margin-top: 4px;
 }
 
-/* ── Multi-entry pill row ──────���───── */
+/* ── Multi-entry pill row ──────�����───── */
 .hud2-pills {
   flex: 1;
   display: flex;
@@ -556,4 +556,188 @@ body {
 .hud-glitch-cyan {
   background: rgb(40 255 255 / 0.06);
   mix-blend-mode: screen;
+}
+
+/* ─────────────────────────────────────────
+   HUD Project Grid
+───────────────────────────────────────── */
+.hud-project-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .hud-project-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hud-project-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+.hud-project-card {
+  position: relative;
+  min-height: 140px;
+  overflow: hidden;
+}
+
+.hud-project-content {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 14px;
+}
+
+.hud-project-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hud-project-idx {
+  font-size: 10px;
+  color: rgb(var(--accent) / 0.5);
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.hud-project-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(var(--accent));
+  text-decoration: none;
+  transition: text-shadow 200ms ease;
+}
+
+.hud-project-name:hover {
+  text-shadow: 0 0 12px rgb(var(--accent) / 0.4);
+}
+
+.hud-project-link-arrow {
+  font-size: 11px;
+  color: rgb(var(--accent) / 0.5);
+  margin-left: 4px;
+}
+
+.hud-project-desc {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--fg) / 0.6);
+  margin-bottom: 10px;
+}
+
+.hud-project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hud-project-tag {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border: 1px solid rgb(var(--accent) / 0.2);
+  border-radius: 2px;
+  color: rgb(var(--fg) / 0.45);
+  background: rgb(var(--accent) / 0.04);
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────
+   HUD Research List
+───────────────────────────────────────── */
+.hud-research-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-research-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.hud-research-row {
+  display: flex;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 2px;
+  transition: background 200ms ease;
+}
+
+.hud-research-row:hover {
+  background: rgb(var(--accent) / 0.04);
+}
+
+.hud-research-accent-bar {
+  width: 2px;
+  flex-shrink: 0;
+  background: rgb(var(--accent) / 0.35);
+  border-radius: 1px;
+  align-self: stretch;
+}
+
+.hud-research-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.hud-research-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hud-research-idx {
+  font-size: 10px;
+  color: rgb(var(--accent) / 0.45);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.hud-research-title {
+  font-size: 13px;
+  color: rgb(var(--fg) / 0.9);
+  font-weight: 400;
+}
+
+.hud-research-link-icon {
+  font-size: 11px;
+  color: rgb(var(--accent) / 0.5);
+  margin-left: 2px;
+}
+
+.hud-research-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.hud-research-venue {
+  font-size: 11px;
+  color: rgb(var(--fg) / 0.4);
+}
+
+.hud-research-divider {
+  font-size: 10px;
+  color: rgb(var(--fg) / 0.2);
+}
+
+.hud-research-year {
+  font-size: 11px;
+  color: rgb(var(--accent) / 0.6);
+  letter-spacing: 0.06em;
 }

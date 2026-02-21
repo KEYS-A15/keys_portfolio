@@ -1,13 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Typewriter } from "@/components/ui/typewriter";
 import { HudBoxesHUD } from "@/components/ui/hud-boxes-hud";
 import { HudProfile } from "@/components/ui/hud-profile";
 import { HudGlitch } from "@/components/ui/hud-glitch";
+import { HudSectionHeader } from "@/components/ui/hud-section-header";
+import { HudProjectGrid } from "@/components/ui/hud-project-grid";
+import { HudResearchList } from "@/components/ui/hud-research-list";
+
+/* ── Data ─────────────────────────────── */
+const PROJECTS = [
+  {
+    name: "Project Alpha",
+    description: "End-to-end ML pipeline for real-time anomaly detection in IoT sensor streams.",
+    tags: ["Python", "TensorFlow", "Kafka", "AWS"],
+    link: "#",
+  },
+  {
+    name: "NeuralSearch",
+    description: "Semantic search engine powered by transformer embeddings and approximate nearest neighbors.",
+    tags: ["PyTorch", "FAISS", "FastAPI", "React"],
+    link: "#",
+  },
+  {
+    name: "VisionLab",
+    description: "Computer vision toolkit for medical image segmentation with attention mechanisms.",
+    tags: ["Python", "OpenCV", "U-Net", "CUDA"],
+    link: "#",
+  },
+  {
+    name: "DataForge",
+    description: "Automated data preprocessing and feature engineering framework for tabular datasets.",
+    tags: ["Pandas", "Scikit-learn", "Airflow"],
+    link: "#",
+  },
+  {
+    name: "ChatCore",
+    description: "Fine-tuned LLM chatbot with RAG pipeline for domain-specific knowledge retrieval.",
+    tags: ["LangChain", "Pinecone", "OpenAI", "Next.js"],
+    link: "#",
+  },
+  {
+    name: "EdgeDeploy",
+    description: "Model optimization and deployment pipeline for resource-constrained edge devices.",
+    tags: ["ONNX", "TensorRT", "Docker", "Raspberry Pi"],
+    link: "#",
+  },
+];
+
+const PAPERS = [
+  {
+    title: "Attention-Guided Feature Fusion for Multi-Modal Anomaly Detection",
+    venue: "IEEE Conference on AI",
+    year: "2025",
+    link: "#",
+  },
+  {
+    title: "Efficient Knowledge Distillation in Large Language Models",
+    venue: "NeurIPS Workshop",
+    year: "2024",
+    link: "#",
+  },
+  {
+    title: "Federated Learning for Privacy-Preserving Healthcare Analytics",
+    venue: "AAAI",
+    year: "2024",
+    link: "#",
+  },
+];
 
 export default function Home() {
   const [bootDone, setBootDone] = useState(false);
+  const [projectsHeaderDone, setProjectsHeaderDone] = useState(false);
+  const [researchHeaderDone, setResearchHeaderDone] = useState(false);
+
+  const onProjectsHeaderDone = useCallback(() => setProjectsHeaderDone(true), []);
+  const onResearchHeaderDone = useCallback(() => setResearchHeaderDone(true), []);
 
   return (
     <div className="min-h-screen relative">
@@ -16,7 +85,7 @@ export default function Home() {
 
       <main>
         <div className="pt-10 pl-8 pr-10 md:pt-12 md:pl-10 md:pr-14">
-          {/* Two-column layout: left = text+boxes, right = profile image */}
+          {/* ── Hero section ─────────────────── */}
           <div className="flex flex-col lg:flex-row lg:gap-10">
             {/* Left column */}
             <div className="flex-1 min-w-0">
@@ -88,6 +157,26 @@ export default function Home() {
               </div>
             )}
           </div>
+
+          {/* ── Projects section ──────────────── */}
+          {bootDone && (
+            <section className="mt-16">
+              <HudSectionHeader text="Projects" onDone={onProjectsHeaderDone} />
+              <HudGlitch intervalMin={6000} intervalMax={14000}>
+                <HudProjectGrid projects={PROJECTS} visible={projectsHeaderDone} />
+              </HudGlitch>
+            </section>
+          )}
+
+          {/* ── Research section ──────────────── */}
+          {bootDone && projectsHeaderDone && (
+            <section className="mt-16 pb-20">
+              <HudSectionHeader text="Research" onDone={onResearchHeaderDone} />
+              <HudGlitch intervalMin={7000} intervalMax={16000}>
+                <HudResearchList papers={PAPERS} visible={researchHeaderDone} />
+              </HudGlitch>
+            </section>
+          )}
         </div>
       </main>
     </div>

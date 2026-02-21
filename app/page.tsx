@@ -51,10 +51,20 @@ export default function Home() {
                       subtext: "SYS | EDU.Record",
                     }}
                     right={{
-                      label: "Previous Position",
-                      mainText: "AI/ML Engineer @ Codetrade.io",
-                      highlights: [
-                        { text: "Codetrade.io", className: "hud2-accent" },
+                      label: "Previous Positions",
+                      entries: [
+                        {
+                          text: "AI/ML Engineer @ Codetrade.io",
+                          highlights: [
+                            { text: "Codetrade.io", className: "hud2-accent" },
+                          ],
+                        },
+                        {
+                          text: "Data Science Intern @ Vertocity",
+                          highlights: [
+                            { text: "Vertocity", className: "hud2-accent" },
+                          ],
+                        },
                       ],
                       subtext: "SYS | EXP.Record",
                     }}

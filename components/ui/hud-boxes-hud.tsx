@@ -4,12 +4,23 @@ import { useEffect, useState, useCallback } from "react";
 
 type Highlight = { text: string; className: string };
 
-type BoxConfig = {
+type SingleBoxConfig = {
   label: string;
   mainText: string;
   highlights: Highlight[];
   subtext: string;
+  entries?: never;
 };
+
+type MultiBoxConfig = {
+  label: string;
+  entries: { text: string; highlights: Highlight[] }[];
+  subtext: string;
+  mainText?: never;
+  highlights?: never;
+};
+
+type BoxConfig = SingleBoxConfig | MultiBoxConfig;
 
 type Props = {
   left: BoxConfig;
@@ -143,18 +154,7 @@ function HudFrame({
   config: BoxConfig;
   delay?: number;
 }) {
-  const [labelDone, setLabelDone] = useState(false);
-  const [textDone, setTextDone] = useState(false);
-
-  const onLabelDone = useCallback(() => setLabelDone(true), []);
-  const onTextDone = useCallback(() => setTextDone(true), []);
-
-  const labelTw = useTypewriter(config.label, stage >= 4, 40, onLabelDone);
-  const textTw = useTypewriter(config.mainText, labelDone, 22, onTextDone);
-  const subTw = useTypewriter(config.subtext, textDone, 28);
-
-  const expanded = stage >= 2;
-  const drawn = stage >= 3;
+  const isMulti = !!config.entries;
 
   return (
     <div className="hud2-box" style={{ animationDelay: `${delay}ms` }}>
@@ -177,47 +177,23 @@ function HudFrame({
           transition: `opacity 180ms ease ${delay}ms`,
         }}
       >
-        <span
-          className="hud2-corner hud2-tl"
-          data-expand={expanded}
-        >
-          +
-        </span>
-        <span
-          className="hud2-corner hud2-tr"
-          data-expand={expanded}
-        >
-          +
-        </span>
-        <span
-          className="hud2-corner hud2-bl"
-          data-expand={expanded}
-        >
-          +
-        </span>
-        <span
-          className="hud2-corner hud2-br"
-          data-expand={expanded}
-        >
-          +
-        </span>
+        <span className="hud2-corner hud2-tl" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-tr" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-bl" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-br" data-expand={stage >= 2}>+</span>
       </div>
 
       {/* Stage 3+: dashed border frame */}
       <div
         className="hud2-frame"
         style={{
-          opacity: drawn ? 1 : 0,
+          opacity: stage >= 3 ? 1 : 0,
           transition: `opacity 400ms ease ${delay}ms`,
         }}
       >
-        {/* Top dashed line */}
         <div className="hud2-edge hud2-edge-top" />
-        {/* Bottom dashed line */}
         <div className="hud2-edge hud2-edge-bottom" />
-        {/* Left dashed line */}
         <div className="hud2-edge hud2-edge-left" />
-        {/* Right dashed line */}
         <div className="hud2-edge hud2-edge-right" />
       </div>
 
@@ -225,7 +201,7 @@ function HudFrame({
       <div
         className="hud2-fill"
         style={{
-          opacity: drawn ? 1 : 0,
+          opacity: stage >= 3 ? 1 : 0,
           transition: `opacity 500ms ease ${delay + 120}ms`,
         }}
       />
@@ -238,30 +214,150 @@ function HudFrame({
           transition: `opacity 180ms ease ${delay}ms`,
         }}
       >
-        {/* Label top-left */}
-        <div className="hud2-label">
-          {labelTw.out}
-          {!labelTw.done && stage >= 4 && <span className="hud2-cursor" />}
-        </div>
-
-        {/* Main text */}
-        <div className="hud2-body">
-          <span>
-            {renderHighlighted(
-              textTw.out,
-              config.mainText,
-              config.highlights
-            )}
-            {labelDone && !textTw.done && <span className="hud2-cursor" />}
-          </span>
-        </div>
-
-        {/* Subtext bottom-right */}
-        <div className="hud2-subtext">
-          {subTw.out}
-          {textDone && !subTw.done && <span className="hud2-cursor" />}
-        </div>
+        {isMulti ? (
+          <MultiContent
+            label={config.label}
+            entries={config.entries!}
+            subtext={config.subtext}
+            active={stage >= 4}
+          />
+        ) : (
+          <SingleContent
+            label={config.label}
+            mainText={config.mainText!}
+            highlights={config.highlights || []}
+            subtext={config.subtext}
+            active={stage >= 4}
+          />
+        )}
       </div>
+    </div>
+  );
+}
+
+/* ── Single text content ──────────────────────────────── */
+function SingleContent({
+  label,
+  mainText,
+  highlights,
+  subtext,
+  active,
+}: {
+  label: string;
+  mainText: string;
+  highlights: Highlight[];
+  subtext: string;
+  active: boolean;
+}) {
+  const [labelDone, setLabelDone] = useState(false);
+  const [textDone, setTextDone] = useState(false);
+
+  const onLabelDone = useCallback(() => setLabelDone(true), []);
+  const onTextDone = useCallback(() => setTextDone(true), []);
+
+  const labelTw = useTypewriter(label, active, 40, onLabelDone);
+  const textTw = useTypewriter(mainText, labelDone, 22, onTextDone);
+  const subTw = useTypewriter(subtext, textDone, 28);
+
+  return (
+    <>
+      <div className="hud2-label">
+        {labelTw.out}
+        {!labelTw.done && active && <span className="hud2-cursor" />}
+      </div>
+      <div className="hud2-body">
+        <span>
+          {renderHighlighted(textTw.out, mainText, highlights)}
+          {labelDone && !textTw.done && <span className="hud2-cursor" />}
+        </span>
+      </div>
+      <div className="hud2-subtext">
+        {subTw.out}
+        {textDone && !subTw.done && <span className="hud2-cursor" />}
+      </div>
+    </>
+  );
+}
+
+/* ── Multi-entry pill content ─────────────────────────── */
+function MultiContent({
+  label,
+  entries,
+  subtext,
+  active,
+}: {
+  label: string;
+  entries: { text: string; highlights: Highlight[] }[];
+  subtext: string;
+  active: boolean;
+}) {
+  const [labelDone, setLabelDone] = useState(false);
+  const [entriesDone, setEntriesDone] = useState<boolean[]>(
+    entries.map(() => false)
+  );
+  const allEntriesDone = entriesDone.every(Boolean);
+
+  const onLabelDone = useCallback(() => setLabelDone(true), []);
+
+  const labelTw = useTypewriter(label, active, 40, onLabelDone);
+  const subTw = useTypewriter(subtext, allEntriesDone, 28);
+
+  const markEntryDone = useCallback(
+    (idx: number) => {
+      setEntriesDone((prev) => {
+        const next = [...prev];
+        next[idx] = true;
+        return next;
+      });
+    },
+    []
+  );
+
+  return (
+    <>
+      <div className="hud2-label">
+        {labelTw.out}
+        {!labelTw.done && active && <span className="hud2-cursor" />}
+      </div>
+      <div className="hud2-pills">
+        {entries.map((entry, i) => (
+          <PillEntry
+            key={i}
+            text={entry.text}
+            highlights={entry.highlights}
+            start={i === 0 ? labelDone : entriesDone[i - 1]}
+            onDone={() => markEntryDone(i)}
+          />
+        ))}
+      </div>
+      <div className="hud2-subtext">
+        {subTw.out}
+        {allEntriesDone && !subTw.done && <span className="hud2-cursor" />}
+      </div>
+    </>
+  );
+}
+
+/* ── Individual pill entry ────────────────────────────── */
+function PillEntry({
+  text,
+  highlights,
+  start,
+  onDone,
+}: {
+  text: string;
+  highlights: Highlight[];
+  start: boolean;
+  onDone: () => void;
+}) {
+  const tw = useTypewriter(text, start, 22, onDone);
+
+  return (
+    <div className="hud2-pill">
+      <span>
+        {renderHighlighted(tw.out, text, highlights)}
+        {start && !tw.done && <span className="hud2-cursor" />}
+      </span>
     </div>
   );
 }

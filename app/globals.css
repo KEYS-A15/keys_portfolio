@@ -315,6 +315,46 @@ body {
   margin-top: 4px;
 }
 
+/* ── Multi-entry pill row ──────────── */
+.hud2-pills {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.hud2-pill {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgb(var(--fg));
+  border: 1px solid rgb(var(--accent) / 0.22);
+  border-radius: 4px;
+  background:
+    radial-gradient(
+      circle,
+      rgb(var(--accent) / 0.06) 0.5px,
+      transparent 0.5px
+    ),
+    linear-gradient(
+      135deg,
+      rgb(var(--accent) / 0.06) 0%,
+      rgb(var(--accent) / 0.02) 50%,
+      transparent 100%
+    );
+  background-size:
+    6px 6px,
+    100% 100%;
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* ── Inline mini cursor ────────────── */
 @keyframes hudCursorBlink {
   0%, 49% { opacity: 0.85; }

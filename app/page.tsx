@@ -12,9 +12,9 @@ import { HudResearchList } from "@/components/ui/hud-research-list";
 /* ── Data ─────────────────────────────── */
 const PROJECTS = [
   {
-    name: "Project Alpha",
-    description: "End-to-end ML pipeline for real-time anomaly detection in IoT sensor streams.",
-    tags: ["Python", "TensorFlow", "Kafka", "AWS"],
+    name: "Edge Voice Command",
+    description: "End-to-end ML voice pipeline for real-time voice command classification for edge devices.",
+    tags: ["Python", "ONNX", "Docker", "TensorRT", "Raspberry Pi"],
     link: "#",
   },
   {
@@ -36,7 +36,7 @@ const PROJECTS = [
     link: "#",
   },
   {
-    name: "ChatCore",
+    name: "ADOC-Chat",
     description: "Fine-tuned LLM chatbot with RAG pipeline for domain-specific knowledge retrieval.",
     tags: ["LangChain", "Pinecone", "OpenAI", "Next.js"],
     link: "#",

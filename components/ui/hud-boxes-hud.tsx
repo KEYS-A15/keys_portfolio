@@ -32,11 +32,10 @@ export function HudBoxesHUD({ left, right }: Props) {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setStage(1), 120),   // center +
-      setTimeout(() => setStage(2), 520),   // + splits into two, expands horizontally
-      setTimeout(() => setStage(3), 1000),  // horizontal + signs expand vertically to corners
-      setTimeout(() => setStage(4), 1500),  // dashed frame appears
-      setTimeout(() => setStage(5), 2000),  // content types in
+      setTimeout(() => setStage(1), 120),
+      setTimeout(() => setStage(2), 520),
+      setTimeout(() => setStage(3), 950),
+      setTimeout(() => setStage(4), 1450),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -170,18 +169,25 @@ function HudFrame({
         <span className="hud2-plus-char">+</span>
       </div>
 
-      {/* Stage 2: + splits into left and right, traveling horizontally */}
-      {/* Stage 3: each side + splits vertically into top/bottom corners */}
-      <span className="hud2-plus hud2-plus-tl" data-stage={stage}>+</span>
-      <span className="hud2-plus hud2-plus-tr" data-stage={stage}>+</span>
-      <span className="hud2-plus hud2-plus-bl" data-stage={stage}>+</span>
-      <span className="hud2-plus hud2-plus-br" data-stage={stage}>+</span>
+      {/* Stage 2+: four corner + signs */}
+      <div
+        className="hud2-corners"
+        style={{
+          opacity: stage >= 2 ? 1 : 0,
+          transition: `opacity 180ms ease ${delay}ms`,
+        }}
+      >
+        <span className="hud2-corner hud2-tl" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-tr" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-bl" data-expand={stage >= 2}>+</span>
+        <span className="hud2-corner hud2-br" data-expand={stage >= 2}>+</span>
+      </div>
 
-      {/* Stage 4: dashed border frame */}
+      {/* Stage 3+: dashed border frame */}
       <div
         className="hud2-frame"
         style={{
-          opacity: stage >= 4 ? 1 : 0,
+          opacity: stage >= 3 ? 1 : 0,
           transition: `opacity 400ms ease ${delay}ms`,
         }}
       >
@@ -195,16 +201,16 @@ function HudFrame({
       <div
         className="hud2-fill"
         style={{
-          opacity: stage >= 4 ? 1 : 0,
+          opacity: stage >= 3 ? 1 : 0,
           transition: `opacity 500ms ease ${delay + 120}ms`,
         }}
       />
 
-      {/* Stage 5: typewritten content */}
+      {/* Stage 4: typewritten content */}
       <div
         className="hud2-content"
         style={{
-          opacity: stage >= 5 ? 1 : 0,
+          opacity: stage >= 4 ? 1 : 0,
           transition: `opacity 180ms ease ${delay}ms`,
         }}
       >
@@ -213,7 +219,7 @@ function HudFrame({
             label={config.label}
             entries={config.entries!}
             subtext={config.subtext}
-            active={stage >= 5}
+            active={stage >= 4}
           />
         ) : (
           <SingleContent
@@ -221,7 +227,7 @@ function HudFrame({
             mainText={config.mainText!}
             highlights={config.highlights || []}
             subtext={config.subtext}
-            active={stage >= 5}
+            active={stage >= 4}
           />
         )}
       </div>

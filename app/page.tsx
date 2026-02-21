@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Typewriter } from "@/components/ui/typewriter";
 import { HudBoxesHUD } from "@/components/ui/hud-boxes-hud";
 import { HudProfile } from "@/components/ui/hud-profile";
@@ -74,30 +74,9 @@ export default function Home() {
   const [bootDone, setBootDone] = useState(false);
   const [projectsHeaderDone, setProjectsHeaderDone] = useState(false);
   const [researchHeaderDone, setResearchHeaderDone] = useState(false);
-  const [researchVisible, setResearchVisible] = useState(false);
-  const researchRef = useRef<HTMLDivElement>(null);
 
   const onProjectsHeaderDone = useCallback(() => setProjectsHeaderDone(true), []);
   const onResearchHeaderDone = useCallback(() => setResearchHeaderDone(true), []);
-
-  // Reveal research section when scrolled into view
-  useEffect(() => {
-    if (!bootDone || !projectsHeaderDone) return;
-    const el = researchRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setResearchVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.15 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [bootDone, projectsHeaderDone]);
 
   return (
     <div className="min-h-screen relative">
@@ -189,17 +168,13 @@ export default function Home() {
             </section>
           )}
 
-          {/* ── Research section (scroll-triggered) ──────────────── */}
+          {/* ── Research section ──────────────── */}
           {bootDone && projectsHeaderDone && (
-            <section ref={researchRef} className="mt-16 pb-20" style={{ minHeight: 120 }}>
-              {researchVisible && (
-                <>
-                  <HudSectionHeader text="Research" onDone={onResearchHeaderDone} />
-                  <HudGlitch intervalMin={7000} intervalMax={16000}>
-                    <HudResearchList papers={PAPERS} visible={researchHeaderDone} />
-                  </HudGlitch>
-                </>
-              )}
+            <section className="mt-16 pb-20">
+              <HudSectionHeader text="Research" onDone={onResearchHeaderDone} />
+              <HudGlitch intervalMin={7000} intervalMax={16000}>
+                <HudResearchList papers={PAPERS} visible={researchHeaderDone} />
+              </HudGlitch>
             </section>
           )}
         </div>

@@ -170,31 +170,12 @@ function HudFrame({
         <span className="hud2-plus-char">+</span>
       </div>
 
-      {/* Stage 2: two + signs expand horizontally from center to left/right edges */}
-      <div
-        className="hud2-h-expand"
-        style={{
-          opacity: stage >= 2 && stage < 4 ? 1 : 0,
-          transition: `opacity 180ms ease ${delay}ms`,
-        }}
-      >
-        <span className="hud2-h-left" data-expand={stage >= 2}>+</span>
-        <span className="hud2-h-right" data-expand={stage >= 2}>+</span>
-      </div>
-
-      {/* Stage 3: four corner + signs — left/right split vertically to top/bottom */}
-      <div
-        className="hud2-corners"
-        style={{
-          opacity: stage >= 3 ? 1 : 0,
-          transition: `opacity 180ms ease ${delay}ms`,
-        }}
-      >
-        <span className="hud2-corner hud2-tl" data-expand={stage >= 3}>+</span>
-        <span className="hud2-corner hud2-tr" data-expand={stage >= 3}>+</span>
-        <span className="hud2-corner hud2-bl" data-expand={stage >= 3}>+</span>
-        <span className="hud2-corner hud2-br" data-expand={stage >= 3}>+</span>
-      </div>
+      {/* Stage 2: + splits into left and right, traveling horizontally */}
+      {/* Stage 3: each side + splits vertically into top/bottom corners */}
+      <span className="hud2-plus hud2-plus-tl" data-stage={stage}>+</span>
+      <span className="hud2-plus hud2-plus-tr" data-stage={stage}>+</span>
+      <span className="hud2-plus hud2-plus-bl" data-stage={stage}>+</span>
+      <span className="hud2-plus hud2-plus-br" data-stage={stage}>+</span>
 
       {/* Stage 4: dashed border frame */}
       <div

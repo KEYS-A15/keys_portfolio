@@ -108,16 +108,9 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Power statement */}
-              {bootDone && (
-                <p className="mt-3 pl-10 text-sm md:text-base text-[rgb(var(--fg)/0.55)] leading-relaxed tracking-wide animate-fade-in">
-                  Student researcher on Applied AI
-                </p>
-              )}
-
               {/* HUD info boxes */}
               {bootDone && (
-                <div className="mt-5 pl-10">
+                <div className="mt-6 pl-10">
                   <HudGlitch intervalMin={4000} intervalMax={9000}>
                     <HudBoxesHUD
                       left={{
@@ -149,13 +142,6 @@ export default function Home() {
                     />
                   </HudGlitch>
                 </div>
-              )}
-
-              {/* Professional summary */}
-              {bootDone && (
-                <p className="mt-6 pl-10 text-xs md:text-sm text-[rgb(var(--fg)/0.45)] leading-relaxed max-w-[600px] animate-fade-in animation-delay-300">
-                  {"I'm pursuing MS in Computer Science from Arizona State University, specializing in AI systems, planning, and RL. My work focuses on designing structured, explainable intelligence and multi-agent LLM architectures for complex systems like cloud and distributed architectures and real-world automations. I've worked as AI/ML Engineer for over 2 years, building end-to-end scalable and robust yet novel AI solutions across Fintech, Healthcare and Edge environments. My research interests span LLM inferencing, algorithmic innovation, Agentic workforce and cross-domain applications of AI."}
-                </p>
               )}
             </div>
 

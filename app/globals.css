@@ -77,21 +77,6 @@ body {
   color: rgb(var(--fg));
 }
 
-/* Fade-in utility */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 500ms ease forwards;
-}
-
-.animation-delay-300 {
-  animation-delay: 300ms;
-  opacity: 0;
-}
-
 /* Tailwind base layer compatibility */
 @layer base {
   * {
@@ -330,7 +315,7 @@ body {
   margin-top: 4px;
 }
 
-/* ── Multi-entry pill row ────���─────── */
+/* ── Multi-entry pill row ──────────── */
 .hud2-pills {
   flex: 1;
   display: flex;

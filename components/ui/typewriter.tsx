@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 type Highlight = { value: string; className: string };
 
 type TypewriterProps = {
-  lines: string[];               // ✅ multiple lines
+  lines: string[];
   speedMs?: number;
   linePauseMs?: number;
   cursor?: boolean;
-  highlights?: Highlight[];      // ✅ multiple highlights
+  highlights?: Highlight[];
   onDone?: () => void;
 };
 
@@ -21,14 +21,18 @@ export function Typewriter({
   highlights = [],
   onDone,
 }: TypewriterProps) {
-  const fullText = useMemo(() => lines.join("\n"), [lines]);
+  // ✅ IMPORTANT: depend on the *string*, not the array identity
+  const fullText = lines.join("\n");
+
   const [out, setOut] = useState("");
 
-  // ✅ Prevent double-run in React Strict Mode (dev)
-  const startedRef = useRef(false);
+  // ✅ IMPORTANT: don't let a new function identity restart the effect
+  const onDoneRef = useRef<(() => void) | undefined>(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   const ranges = useMemo(() => {
-    // Build highlight ranges on fullText (supports multiple occurrences)
     const all: { start: number; end: number; className: string }[] = [];
     for (const h of highlights) {
       if (!h.value) continue;
@@ -40,18 +44,15 @@ export function Typewriter({
         idx = found + h.value.length;
       }
     }
-    // sort by start so rendering is stable
     all.sort((a, b) => a.start - b.start);
     return all;
   }, [fullText, highlights]);
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-
     setOut("");
     let i = 0;
     let cancelled = false;
+    let timeoutId: number | null = null;
 
     const tick = () => {
       if (cancelled) return;
@@ -61,98 +62,85 @@ export function Typewriter({
       setOut(fullText.slice(0, i));
 
       if (i >= fullText.length) {
-        onDone?.();
+        onDoneRef.current?.();
         return;
       }
 
-      // tiny pause after newline for “cursor drops” feel
-      if (next === "\n") {
-        window.setTimeout(tick, linePauseMs);
-      } else {
-        window.setTimeout(tick, speedMs);
-      }
+      timeoutId = window.setTimeout(tick, next === "\n" ? linePauseMs : speedMs);
     };
 
-    const id = window.setTimeout(tick, 350);
+    timeoutId = window.setTimeout(tick, 350);
 
     return () => {
       cancelled = true;
-      window.clearTimeout(id);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
-  }, [fullText, speedMs, linePauseMs, onDone]);
+  }, [fullText, speedMs, linePauseMs]); // ✅ onDone removed
 
-const renderHighlighted = () => {
-  const typed = out.length;
-  if (typed === 0) return null;
+  const renderHighlighted = () => {
+    const typed = out.length;
+    if (typed === 0) return null;
 
-  const content = out;
-  const split = content.split("\n");
-  const lastIdx = split.length - 1;
+    const split = out.split("\n");
+    const lastIdx = split.length - 1;
 
-  const applyHighlightsToLine = (line: string, lineStart: number) => {
-    if (!ranges.length) return line;
+    const applyHighlightsToLine = (line: string, lineStart: number) => {
+      if (!ranges.length) return line;
 
-    // collect highlight segments that intersect this line and are already typed
-    const segs: { start: number; end: number; className: string }[] = [];
+      const segs: { start: number; end: number; className: string }[] = [];
+      for (const r of ranges) {
+        if (typed <= r.start) break;
 
-    for (const r of ranges) {
-      if (typed <= r.start) break; // highlight not reached yet
+        const startAbs = Math.max(r.start, lineStart);
+        const endAbs = Math.min(r.end, lineStart + line.length, typed);
 
-      const startAbs = Math.max(r.start, lineStart);
-      const endAbs = Math.min(r.end, lineStart + line.length, typed);
-
-      if (endAbs > startAbs) {
-        segs.push({
-          start: startAbs - lineStart,
-          end: endAbs - lineStart,
-          className: r.className,
-        });
+        if (endAbs > startAbs) {
+          segs.push({
+            start: startAbs - lineStart,
+            end: endAbs - lineStart,
+            className: r.className,
+          });
+        }
       }
-    }
+      if (segs.length === 0) return line;
 
-    if (segs.length === 0) return line;
+      segs.sort((a, b) => a.start - b.start);
 
-    // sort segments; later segments can overlap — we’ll render in order
-    segs.sort((a, b) => a.start - b.start);
+      const parts: React.ReactNode[] = [];
+      let pos = 0;
 
-    const parts: React.ReactNode[] = [];
-    let pos = 0;
+      for (const s of segs) {
+        const start = Math.max(s.start, pos);
+        const end = Math.max(s.end, start);
 
-    for (const s of segs) {
-      // if overlap, skip backwards parts
-      const start = Math.max(s.start, pos);
-      const end = Math.max(s.end, start);
+        if (start > pos) parts.push(line.slice(pos, start));
 
-      if (start > pos) parts.push(line.slice(pos, start));
-
-      if (end > start) {
-        parts.push(
-          <span key={`${lineStart}-${start}-${end}-${s.className}`} className={s.className}>
-            {line.slice(start, end)}
-          </span>
-        );
+        if (end > start) {
+          parts.push(
+            <span key={`${lineStart}-${start}-${end}-${s.className}`} className={s.className}>
+              {line.slice(start, end)}
+            </span>
+          );
+        }
+        pos = end;
       }
 
-      pos = end;
-    }
+      if (pos < line.length) parts.push(line.slice(pos));
+      return <>{parts}</>;
+    };
 
-    if (pos < line.length) parts.push(line.slice(pos));
-    return <>{parts}</>;
+    return split.map((line, idx) => {
+      const beforeText = split.slice(0, idx).join("\n");
+      const lineStart = beforeText.length + (idx === 0 ? 0 : 1);
+
+      return (
+        <div key={idx} className={`terminal-line-${idx}`}>
+          <span>{applyHighlightsToLine(line, lineStart)}</span>
+          {cursor && idx === lastIdx && <span className="cursor-block" />}
+        </div>
+      );
+    });
   };
-
-  return split.map((line, idx) => {
-    // compute absolute start index of this line in `content`
-    const beforeText = split.slice(0, idx).join("\n");
-    const lineStart = beforeText.length + (idx === 0 ? 0 : 1);
-
-    return (
-      <div key={idx} className={`terminal-line-${idx}`}>
-        <span>{applyHighlightsToLine(line, lineStart)}</span>
-        {cursor && idx === lastIdx && <span className="cursor-block" />}
-      </div>
-    );
-  });
-};
 
   return <div className="whitespace-pre-wrap">{renderHighlighted()}</div>;
 }

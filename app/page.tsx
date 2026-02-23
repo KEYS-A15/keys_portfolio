@@ -3,11 +3,15 @@
 import { useState, useCallback } from "react";
 import { Typewriter } from "@/components/ui/typewriter";
 import { HudBoxesHUD } from "@/components/ui/hud-boxes-hud";
+import { HudSummary } from "@/components/ui/hud-summary";
 import { HudProfile } from "@/components/ui/hud-profile";
 import { HudGlitch } from "@/components/ui/hud-glitch";
 import { HudSectionHeader } from "@/components/ui/hud-section-header";
 import { HudProjectGrid } from "@/components/ui/hud-project-grid";
 import { HudResearchList } from "@/components/ui/hud-research-list";
+import { CursorFX } from "@/components/ui/cursor-fx";
+import { MatrixCursorFX } from "@/components/ui/matrix-cursor-fx";
+
 
 /* ── Data ─────────────────────────────── */
 const PROJECTS = [
@@ -51,35 +55,38 @@ const PROJECTS = [
 
 const PAPERS = [
   {
-    title: "Attention-Guided Feature Fusion for Multi-Modal Anomaly Detection",
-    venue: "IEEE Conference on AI",
-    year: "2025",
+    title: "Transformer-Based Approach for local neighborhood mutation in TCR sequences for cancer-adaptive immunotherapy",
+    venue: "Thesis Proposal @ Arizona State University",
+    year: "2026",
     link: "#",
   },
   {
-    title: "Efficient Knowledge Distillation in Large Language Models",
-    venue: "NeurIPS Workshop",
-    year: "2024",
+    title: "Reinforcement Learning with Planning for Cloud Resource Management",
+    venue: "Thesis Proposal @ Arizona State University",
+    year: "2026",
     link: "#",
   },
   {
     title: "Federated Learning for Privacy-Preserving Healthcare Analytics",
-    venue: "AAAI",
-    year: "2024",
+    venue: "Thesis Proposal @ Arizona State University",
+    year: "2026",
     link: "#",
   },
 ];
 
 export default function Home() {
+  const [greetingDone, setGreetingDone] = useState(false);
   const [bootDone, setBootDone] = useState(false);
+  const [hudDone, setHudDone] = useState(false);
   const [projectsHeaderDone, setProjectsHeaderDone] = useState(false);
   const [researchHeaderDone, setResearchHeaderDone] = useState(false);
-
+  const onSummaryDone = useCallback(() => setBootDone(true), []);
   const onProjectsHeaderDone = useCallback(() => setProjectsHeaderDone(true), []);
   const onResearchHeaderDone = useCallback(() => setResearchHeaderDone(true), []);
 
   return (
     <div className="min-h-screen relative">
+      <MatrixCursorFX radius={100} speed={0.4} density={2} opacity={0.05}/>
       {/* CRT scanline overlay */}
       <div className="scanlines" aria-hidden="true" />
 
@@ -90,7 +97,7 @@ export default function Home() {
             {/* Left column */}
             <div className="flex-1 min-w-0">
               {/* Typewriter line */}
-              <div className="flex items-start gap-4 font-medium leading-relaxed whitespace-nowrap">
+              <div className="flex items-start gap-4 font-medium leading-relaxed">
                 <span className="text-[rgb(var(--accent))] text-2xl md:text-3xl select-none leading-relaxed">
                   {">"}
                 </span>
@@ -103,10 +110,31 @@ export default function Home() {
                     highlights={[
                       { value: "Shrey Gajjar", className: "text-[rgb(var(--accent))]" },
                     ]}
-                    onDone={() => setBootDone(true)}
+                    onDone={() => setGreetingDone(true)}
                   />
                 </div>
               </div>
+
+              {/* Professional summary (no typewriter; reveal after HUD opens) */}
+              {greetingDone && (
+                <div className="mt-3 pl-10 pr-2 max-w-6xl">
+                  <HudSummary
+                    text={
+                      "An MS CS candidate at Arizona State University, specializing in AI systems, planning and RL. " +
+                      "My work focuses on applied AI across domains such as distributed systems, fintech and healthcare. " +
+                      "With over 2 years of experience as AI/ML engineer, I have built end-to-end ML pipelines and robust AI implementations with novel solutions and scalable architecture."
+                    }
+                    highlights={[
+                      { value: "MS CS", className: "hud2-accent" },
+                      { value: "Arizona State University", className: "hud2-accent" },
+                      { value: "AI systems", className: "hud2-accent" },
+                      { value: "planning", className: "hud2-accent" },
+                      { value: "RL", className: "hud2-accent" },
+                    ]}
+                    onDone={onSummaryDone}
+                  />
+                </div>
+              )}
 
               {/* HUD info boxes */}
               {bootDone && (
